@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080d12">
+  <meta name="description" content="Prisma Floor Lens camera tile visualizer">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <title>Prisma Floor Lens</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="shell" id="catalog">
+    <header class="top">
+      <div class="brand"><span class="mark"><i></i><i></i><i></i><i></i></span><span><strong>PRISMA</strong><small>FLOOR LENS</small></span></div>
+      <button id="install" class="btn hidden">Install</button>
+    </header>
+    <div class="notice"><b>Working deployment build.</b> This version verifies that the catalog, HTTPS camera access, photo mode, install flow, and perspective floor preview load correctly. The automatic floor-only segmentation and final high-resolution artwork package are the next deployment layer.</div>
+    <main>
+      <section class="hero">
+        <div><p class="eyebrow">CAMERA TILE VISUALIZER</p><h1>See a tile on your floor before you choose it.</h1><p>Choose a design. The camera opens automatically and projects a perspective tile pattern over the lower floor zone. Use the floor-line control to correct the boundary in this test build.</p><div class="pills"><span>18 catalog designs</span><span>60 × 120 cm format</span><span>Camera + photo mode</span></div></div>
+        <div class="phone"><div class="phone-screen"><div class="phone-floor"></div><div class="scan">Floor preview active</div></div></div>
+      </section>
+      <section class="catalog"><div class="section-head"><div><p class="eyebrow">PRISMA COLLECTION</p><h2>Choose a tile</h2></div><input id="search" class="search" type="search" placeholder="Search tile name" aria-label="Search tile name"></div><div id="grid" class="grid"></div></section>
+    </main>
+    <footer><span>Prisma Collection · Working deployment</span><span>Camera frames stay inside your browser.</span></footer>
+  </div>
+
+  <section id="viewer" class="viewer" aria-hidden="true">
+    <video id="video" autoplay playsinline muted></video><img id="photo" class="photo-source" alt=""><canvas id="canvas"></canvas>
+    <div id="error" class="error"><b id="errorTitle">Camera unavailable</b><p id="errorText">Allow camera permission or choose a room photo.</p><button id="retry" class="btn primary">Retry</button><button id="errorPhoto" class="btn">Use photo</button></div>
+    <div class="viewer-ui">
+      <div class="bar"><button id="back" class="glass">← Catalog</button><div class="glass viewer-title"><b id="selectedName">Tile</b><small>60 × 120 cm</small></div><div class="glass status" id="status">Starting camera</div></div>
+      <div class="bottom"><div class="range-row"><label for="horizon">Floor line</label><input id="horizon" type="range" min="20" max="78" value="47"><output id="horizonOut">47%</output></div><div class="range-row"><label for="opacity">Blend</label><input id="opacity" type="range" min="45" max="100" value="88"><output id="opacityOut">88%</output></div><div class="range-row"><label for="scale">Tile size</label><input id="scale" type="range" min="55" max="180" value="100"><output id="scaleOut">100%</output></div><div class="actions"><button id="photoBtn">Use photo</button><button id="save" class="capture">Save preview</button><button id="rotate">Rotate tile</button></div></div>
+    </div><input id="photoInput" type="file" accept="image/*" capture="environment" hidden>
+  </section>
+
+<script src="./app.js"></script>
+</body>
+</html>
