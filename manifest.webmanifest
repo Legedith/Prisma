@@ -1,0 +1,12 @@
+{
+  "name": "Prisma Floor Lens",
+  "short_name": "Prisma Lens",
+  "description": "Preview tile patterns using your phone camera.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080d12",
+  "theme_color": "#080d12",
+  "orientation": "portrait-primary",
+  "icons": [{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
