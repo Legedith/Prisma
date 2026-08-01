@@ -1,34 +1,38 @@
-(() => {
-  const tiles=[
-    ['AJ-1046','leaf','#d9e69d','#7da486'],['AJ-1047','leaf','#d7e1f6','#6580ad'],['AJ-1048','leaf','#f4dec7','#bb895f'],['AJ-1059','daisy','#d7d7d3','#86a191'],['AJ-1137','cube','#f5f6f5','#173653'],['AJ-1181','flower','#fff','#8ca164'],['AJ-1182','flower','#fff9f1','#b88942'],['ANTIQUE FLOWER','flower','#f7f6f1','#7790bb'],['CHEX FLUR','mosaic','#eef0ee','#163555'],['DAISY AQUA','daisy','#4e718b','#f0eee9'],['DONATO','rose','#fff','#9d8a76'],['FEATHER MULTY','feather','#fff','#34548a'],['LILY MULTI','flower','#b9babb','#6b8fb5'],['LILY WHITE','flower','#fff','#d9d9d4'],['VINCA AQUA','branch','#f9fbf8','#77a7a0'],['VINCA AZUL','branch','#dbe7f4','#6680a5'],['VINCA TITANIUM','branch','#fafbf6','#acb46c'],['VINCA VERDE','branch','#fafbf8','#59826d']
-  ].map((x,i)=>({name:x[0],kind:x[1],bg:x[2],accent:x[3],id:i}));
-  const $=s=>document.querySelector(s), grid=$('#grid'), viewer=$('#viewer'), canvas=$('#canvas'), ctx=canvas.getContext('2d'), video=$('#video'), photo=$('#photo');
-  let chosen=tiles[0],stream=null,source=null,raf=0,rotation=0,deferredPrompt=null;
-  const tileCanvas=document.createElement('canvas');tileCanvas.width=240;tileCanvas.height=120;
-  function seedRand(seed){let x=seed*9973+17;return()=>((x=(x*1664525+1013904223)>>>0)/4294967296)}
-  function makeTile(tile,target=tileCanvas){const c=target.getContext('2d'),w=target.width,h=target.height,r=seedRand(tile.id+1);c.clearRect(0,0,w,h);c.fillStyle=tile.bg;c.fillRect(0,0,w,h);c.strokeStyle=tile.accent;c.fillStyle=tile.accent;c.lineWidth=2;
-    if(tile.kind==='leaf'){for(let i=0;i<11;i++){const x=r()*w,y=r()*h,s=16+r()*30;c.save();c.translate(x,y);c.rotate((r()-.5)*2.4);c.globalAlpha=.55;c.beginPath();c.ellipse(0,0,s,s*.42,0,0,7);c.stroke();for(let k=-2;k<=2;k++){c.beginPath();c.moveTo(-s*.8,k*3);c.lineTo(s*.8,-k*3);c.stroke()}c.restore()}}
-    else if(tile.kind==='cube'){const s=36;c.lineWidth=5;for(let y=-s;y<h+s;y+=s*.75)for(let x=-s;x<w+s;x+=s*1.5){c.strokeStyle='#15334c';c.beginPath();c.moveTo(x,y);c.lineTo(x+s*.5,y-s*.25);c.lineTo(x+s,y);c.lineTo(x+s*.5,y+s*.25);c.closePath();c.stroke()}}
-    else if(tile.kind==='mosaic'){for(let y=5;y<h;y+=18)for(let x=5;x<w;x+=18){c.fillStyle=r()>.82?tile.accent:'#e9ecea';c.fillRect(x,y,12,12);c.strokeStyle='#c8cfce';c.strokeRect(x,y,12,12)}}
-    else if(tile.kind==='feather'){for(let i=0;i<13;i++){const x=r()*w,y=r()*h,s=18+r()*28;c.save();c.translate(x,y);c.rotate(r()*6.2);c.strokeStyle=[tile.accent,'#c39d40','#4d7a5c','#333'][i%4];c.beginPath();c.moveTo(-s,0);c.quadraticCurveTo(0,-s*.45,s,0);c.quadraticCurveTo(0,s*.35,-s,0);c.stroke();c.restore()}}
-    else if(tile.kind==='branch'){c.strokeStyle='#253d36';c.lineWidth=4;for(let i=0;i<3;i++){const oy=i*48-15;c.beginPath();c.moveTo(-15,oy+50);c.bezierCurveTo(60,oy-25,150,oy+80,260,oy);c.stroke();for(let j=0;j<7;j++)flower(c,15+j*38,oy+25+Math.sin(j)*22,9+(j%3)*2,tile.accent)}}
-    else {for(let i=0;i<14;i++)flower(c,r()*w,r()*h,7+r()*16,tile.accent,tile.kind==='daisy'?12:6)}
-    c.globalAlpha=1;return target}
-  function flower(c,x,y,s,color,petals=6){c.save();c.translate(x,y);c.fillStyle=color;c.globalAlpha=.78;for(let p=0;p<petals;p++){c.rotate(Math.PI*2/petals);c.beginPath();c.ellipse(s*.75,0,s*.75,s*.34,0,0,7);c.fill()}c.fillStyle='#f5e1a0';c.beginPath();c.arc(0,0,s*.23,0,7);c.fill();c.restore()}
-  function renderCatalog(list){grid.innerHTML='';list.forEach(tile=>{const b=document.createElement('button');b.className='card';b.innerHTML='<div class="art"><canvas width="240" height="120"></canvas></div><div class="card-body"><span><b>'+tile.name+'</b><small>60 × 120 cm · Gloss</small></span><span class="arrow">›</span></div>';makeTile(tile,b.querySelector('canvas'));b.onclick=()=>openViewer(tile);grid.appendChild(b)})}
-  function resize(){const d=Math.min(devicePixelRatio||1,1.8),w=innerWidth,h=innerHeight;if(canvas.width!==Math.round(w*d)||canvas.height!==Math.round(h*d)){canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(d,0,0,d,0,0)}}
-  function sourceSize(){if(source===video)return[video.videoWidth,video.videoHeight];return[photo.naturalWidth,photo.naturalHeight]}
-  function drawCover(src,w,h){const [sw,sh]=sourceSize();if(!sw||!sh)return false;const sa=sw/sh,ta=w/h;let sx=0,sy=0,cw=sw,ch=sh;if(sa>ta){cw=sh*ta;sx=(sw-cw)/2}else{ch=sw/ta;sy=(sh-ch)/2}ctx.drawImage(src,sx,sy,cw,ch,0,0,w,h);return true}
-  function draw(){if(!viewer.classList.contains('active'))return;resize();const w=innerWidth,h=innerHeight;ctx.fillStyle='#111';ctx.fillRect(0,0,w,h);if(source&&drawCover(source,w,h)){const horizon=+$('#horizon').value/100,alpha=+$('#opacity').value/100,size=+$('#scale').value/100;ctx.save();ctx.beginPath();ctx.moveTo(w*(.16-horizon*.08),h*horizon);ctx.lineTo(w*(.84+horizon*.08),h*horizon);ctx.lineTo(w*1.08,h);ctx.lineTo(-w*.08,h);ctx.closePath();ctx.clip();ctx.globalAlpha=alpha;ctx.globalCompositeOperation='multiply';const base=120*size;for(let y=h*horizon;y<h+base;y+=base*.5){const depth=(y-h*horizon)/(h*(1-horizon));const tw=base*(.38+depth*1.55),th=tw*.5;const shift=(y/(th||1))%2?tw*.5:0;for(let x=-tw*2;x<w+tw*2;x+=tw){ctx.save();ctx.translate(x+shift,y);ctx.rotate(rotation);ctx.drawImage(tileCanvas,-tw/2,-th/2,tw,th);ctx.restore()}}ctx.restore()}raf=requestAnimationFrame(draw)}
-  async function startCamera(){stopCamera();$('#error').classList.remove('show');$('#status').textContent='Starting camera';try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Camera API unavailable');stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});video.srcObject=stream;await video.play();source=video;$('#status').textContent='Camera ready';cancelAnimationFrame(raf);draw()}catch(e){console.error(e);$('#status').textContent='Permission needed';$('#error').classList.add('show')}}
-  function stopCamera(){if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}video.srcObject=null}
-  function openViewer(tile){chosen=tile;makeTile(tile);$('#selectedName').textContent=tile.name;viewer.classList.add('active');viewer.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';startCamera()}
-  function closeViewer(){viewer.classList.remove('active');viewer.setAttribute('aria-hidden','true');document.body.style.overflow='';stopCamera();cancelAnimationFrame(raf);source=null}
-  function choosePhoto(){$('#photoInput').click()}
-  $('#photoInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;stopCamera();photo.src=URL.createObjectURL(f);await photo.decode();source=photo;$('#error').classList.remove('show');$('#status').textContent='Photo mode';cancelAnimationFrame(raf);draw()};
-  $('#back').onclick=closeViewer;$('#retry').onclick=startCamera;$('#photoBtn').onclick=choosePhoto;$('#errorPhoto').onclick=choosePhoto;$('#rotate').onclick=()=>rotation=(rotation+Math.PI/2)%(Math.PI*2);$('#save').onclick=()=>{const a=document.createElement('a');a.download='prisma-'+chosen.name.toLowerCase().replaceAll(' ','-')+'.jpg';a.href=canvas.toDataURL('image/jpeg',.92);a.click()};
-  ['horizon','opacity','scale'].forEach(id=>{const el=$('#'+id),out=$('#'+id+'Out');el.oninput=()=>out.value=el.value+'%'});
-  $('#search').oninput=e=>renderCatalog(tiles.filter(t=>t.name.toLowerCase().includes(e.target.value.toLowerCase())));renderCatalog(tiles);
-  addEventListener('resize',resize);addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#install').classList.remove('hidden')});$('#install').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('#install').classList.add('hidden')}};
-  if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));
-})();
+const APP_PARTS = [
+  './app-parts/part-00.b64',
+  './app-parts/part-01.b64',
+  './app-parts/part-02.b64',
+  './app-parts/part-03.b64',
+  './app-parts/part-04.b64',
+  './app-parts/part-05.b64',
+  './app-parts/part-06.b64',
+  './app-parts/part-07.b64',
+  './app-parts/part-08.b64',
+];
+
+async function loadApplication() {
+  const parts = await Promise.all(APP_PARTS.map(async (path) => {
+    const response = await fetch(path, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Could not load ${path}: HTTP ${response.status}`);
+    return response.text();
+  }));
+  const encoded = parts.join('').replace(/\s+/g, '');
+  const binary = atob(encoded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  let source = new TextDecoder().decode(bytes);
+  // Repair one stale fragment left by an interrupted repository upload.
+  source = source.replace(
+    'const value = state.currentMask.length;',
+    'const value = state.currentMask[i] / 255;'
+  );
+  if (!source.includes('class TileRenderer') || !source.includes('function initialize()')) {
+    throw new Error('The application bundle is incomplete.');
+  }
+  (0, eval)(`${source}\n//# sourceURL=prisma-floor-lens-v4.js`);
+}
+
+loadApplication().catch((error) => {
+  console.error('Prisma Floor Lens failed to start.', error);
+  document.body.innerHTML = `<main style="max-width:720px;margin:10vh auto;padding:24px;font:16px/1.5 system-ui;color:#111"><h1>Prisma Floor Lens could not start</h1><p>${String(error?.message || error)}</p><button onclick="location.reload()" style="padding:12px 18px">Retry</button></main>`;
+});

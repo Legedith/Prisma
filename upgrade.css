@@ -1,0 +1,73 @@
+/* V4: semantic floor segmentation, high-quality freeze and mask refinement */
+.settings-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mask-edit-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  width: 100%;
+  height: 100%;
+  display: none;
+  touch-action: none;
+  cursor: crosshair;
+}
+.mask-edit-canvas.active { display: block; }
+.refine-panel {
+  position: absolute;
+  z-index: 14;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + var(--safe-bottom));
+  width: min(760px, calc(100% - 24px));
+  margin: 0 auto;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 22px;
+  background: rgba(10,13,17,.95);
+  box-shadow: 0 22px 80px rgba(0,0,0,.52);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+  transform: translateY(calc(100% + 30px));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .24s ease, opacity .2s ease;
+}
+.refine-panel.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.refine-copy { display: grid; gap: 4px; }
+.refine-copy strong { font-size: 16px; }
+.refine-copy span { color: var(--muted); font-size: 11px; line-height: 1.48; }
+.refine-tools {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  align-items: stretch;
+}
+.refine-tools .button { min-height: 45px; border-radius: 12px; padding: 0 10px; font-size: 10px; }
+.refine-tools .button.active { box-shadow: 0 0 0 2px rgba(255,255,255,.22) inset; }
+.brush-control {
+  min-height: 45px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.055);
+  padding: 7px 10px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 9px;
+}
+.brush-control input { width: 100%; accent-color: var(--accent-2); }
+.viewer-view.refining .viewer-topbar,
+.viewer-view.refining .instruction-card,
+.viewer-view.refining .viewer-bottom,
+.viewer-view.refining .settings-panel,
+.viewer-view.refining .error-panel { opacity: 0; pointer-events: none; }
+.viewer-view.refining #renderCanvas { filter: saturate(.86) brightness(.82); }
+
+@media (max-width: 760px) {
+  .settings-buttons { grid-template-columns: 1fr; }
+  .refine-panel { left: 8px; right: 8px; width: calc(100% - 16px); padding: 13px; }
+  .refine-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .brush-control { grid-column: span 2; }
+}
